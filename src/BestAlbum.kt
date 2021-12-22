@@ -1,19 +1,19 @@
 fun main() {
-    val answer = Camouflage().solution(
+    val answer = BestAlbum().solution(
         arrayOf("classic", "pop", "classic", "classic", "pop"),
         intArrayOf(500, 600, 150, 800, 2500)
     )
     answer.forEach { println(it) } // 4,1,3,0
 }
 
-class Camouflage {
-
-    fun exercise() {
-        val data: List<String> = listOf("Abcd", "efgh", "Klmn")
-        val selected: List<Boolean> = data.map { it.any { c -> c.isUpperCase() } }
-        val result =
-            data.flatMapIndexed { index, s -> if (selected[index]) s.toList() else emptyList() }
-        println(result) // [A, b, c, d, K, l, m, n]
+class BestAlbum {
+    fun betterSolution(genres: Array<String>, plays: IntArray): IntArray {
+        return genres.indices.groupBy { genres[it] }
+            .toList()
+            .sortedByDescending { it.second.sumBy { plays[it] } }
+            .map { it.second.sortedByDescending { plays[it] }.take(2) }
+            .flatten()
+            .toIntArray()
     }
 
     fun solution(genres: Array<String>, plays: IntArray): IntArray {
@@ -40,16 +40,20 @@ class Camouflage {
             totalCnt
         }
 
-        val answer = mutableListOf<Int>()
-        totalCntList.map { (genre, totalCnt) ->
-            playListMap[genre]?.getOrNull(0)?.let { (index, cnt) ->
-                answer.add(index)
-            }
-            playListMap[genre]?.getOrNull(1)?.let { (index, cnt) ->
-                answer.add(index)
-            }
-        }
+        return totalCntList.flatMap { (genre, totalCnt) ->
+            playListMap[genre]?.take(2)?.map { (index, cnt) -> index } ?: emptyList()
+        }.toIntArray()
+    }
 
-        return answer.toIntArray()
+    fun selfBetter(genres: Array<String>, plays: IntArray): IntArray {
+        return genres.indices.groupBy { genres[it] } // classic : [0,1,2] pop: [3,4]
+            .toList()
+            .sortedByDescending { (genre, indexList) -> // 해당 장르 전체 재생 횟수에 따라 DescendingSort
+                indexList.sumOf { plays[it] }
+            }
+            .flatMap { (genre, indexList) -> // 각 장르 내 재생횟수 큰것부터 sort.하는데 그 앞에서 2개만 쓸거고 얘네들을 flat하게 써야함.
+                indexList.sortedByDescending { plays[it] }.take(2)
+            }
+            .toIntArray()
     }
 }
